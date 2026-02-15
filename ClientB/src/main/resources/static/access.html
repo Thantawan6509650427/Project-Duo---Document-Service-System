@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ขอเข้าถึงเอกสาร</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        h2 { margin-top: 30px; }
+        form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+
+    <h1>ขอเข้าถึงเอกสาร</h1>
+
+    <form id="accessForm">
+        <label>Requester ID</label>
+        <input type="number" name="requesterId" value="1" required>
+
+        <label>Provider ID</label>
+        <input type="number" name="providerId" value="1" required>
+
+        <label>Document ID</label>
+        <input type="number" name="documentId" value="4" required>
+
+        <button type="submit">ขอเข้าถึงเอกสาร</button>
+    </form>
+
+    <script>
+        document.getElementById('accessForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(this));
+            fetch('http://localhost:8080/api/access', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(json => alert("ผลลัพธ์: " + JSON.stringify(json)))
+            .catch(err => alert("เกิดข้อผิดพลาด: " + err));
+        });
+    </script>
+</body>
+</html>

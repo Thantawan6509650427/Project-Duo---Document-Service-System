@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการเอกสาร</title>
+    <style>
+        :root {
+            --primary: #1976d2;
+            --secondary: #f50057;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --success: #4caf50;
+            --warning: #ff9800;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid var(--primary);
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0d47a1;
+        }
+
+        .response-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            border-left: 4px solid var(--primary);
+            min-height: 100px;
+        }
+        
+        .document-list {
+            list-style: none;
+        }
+        
+        .document-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .document-item h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .document-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #777;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .split-view {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .side {
+            flex: 1;
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .side h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .api-endpoint {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        code {
+            font-family: monospace;
+        }
+
+        .response-success {
+            border-left-color: var(--success);
+        }
+
+        .response-error {
+            border-left-color: var(--secondary);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #c51162;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>ระบบจัดการเอกสาร</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="split-view">
+            <div class="side">
+                <h2>ฝั่ง A (ผู้ให้บริการ)</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="access">ขอเข้าถึงเอกสาร</div>
+                    <div class="tab" data-tab="search">ค้นหาเอกสาร</div>
+                    <div class="tab" data-tab="llm-summary">สรุปเอกสารด้วย LLM</div>
+                </div>
+                
+                <!-- Access Tab -->
+                <div class="tab-content active" id="access">
+                    <h3>ขอเข้าถึงเอกสาร (ACCESS)</h3>
+                    <div class="api-endpoint">POST http://localhost:9090/api/access</div>
+                    
+                    <form id="access-form">
+                        <div class="form-group">
+                            <label for="access-requester">ผู้ขอเข้าถึง (requesterID)</label>
+                            <select id="access-requester">
+                                <option value="1">1 - สมชาย มั่งมี</option>
+                                <option value="2">2 - สมหญิง รักดี</option>
+                                <option value="3">3 - วิชัย ใจดี</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="access-provider">ผู้ให้บริการ (providerID)</label>
+                            <select id="access-provider">
+                                <option value="1">1 - ธนาคาร A</option>
+                                <option value="2">2 - บริษัท B</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="access-document">เอกสารที่ต้องการเข้าถึง (documentID)</label>
+                            <select id="access-document">
+                                <option value="1">1 - สัญญาเงินกู้</option>
+                                <option value="2">2 - รายงานการเงิน Q1/2024</option>
+                                <option value="3">3 - ใบแจ้งหนี้ เดือนเมษายน</option>
+                                <option value="4">4 - สัญญาจ้างงาน</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit">ส่งคำขอ</button>
+                    </form>
+                    
+                    <div class="response-area" id="access-response">
+                        <!-- API Response will appear here -->
+                    </div>
+                </div>
+                
+                <!-- Search Tab -->
+                <div class="tab-content" id="search">
+                    <h3>ค้นหาเอกสาร (SEARCH)</h3>
+                    <div class="api-endpoint">POST http://localhost:9090/api/search</div>
+                    
+                    <form id="search-form">
+                        <div class="form-group">
+                            <label for="search-requester">ผู้ค้นหา (requesterID)</label>
+                            <select id="search-requester">
+                                <option value="1">1 - สมชาย มั่งมี</option>
+                                <option value="2">2 - สมหญิง รักดี</option>
+                                <option value="3">3 - วิชัย ใจดี</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="search-provider">ผู้ให้บริการ (providerID)</label>
+                            <select id="search-provider">
+                                <option value="1">1 - ธนาคาร A</option>
+                                <option value="2">2 - บริษัท B</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="search-keyword">คำค้น (keyword)</label>
+                            <input type="text" id="search-keyword" placeholder="ใส่คำค้น เช่น Q1, สัญญา, ใบแจ้งหนี้">
+                        </div>
+                        
+                        <button type="submit">ค้นหา</button>
+                    </form>
+                    
+                    <div class="response-area" id="search-response">
+                        <!-- API Response will appear here -->
+                    </div>
+                </div>
+                
+                <!-- LLM Summary Tab -->
+                <div class="tab-content" id="llm-summary">
+                    <h3>สรุปเอกสารด้วย LLM (LLM_SUMMARY)</h3>
+                    <div class="api-endpoint">POST http://localhost:8080/api/services/summarize</div>
+                    
+                    <form id="llm-summary-form">
+                        <div class="form-group">
+                            <label for="summary-requester">ผู้ขอสรุป (requesterID)</label>
+                            <select id="summary-requester">
+                                <option value="1">1 - สมชาย มั่งมี</option>
+                                <option value="2">2 - สมหญิง รักดี</option>
+                                <option value="3">3 - วิชัย ใจดี</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="summary-provider">ผู้ให้บริการ (providerID)</label>
+                            <select id="summary-provider">
+                                <option value="1">1 - ธนาคาร A</option>
+                                <option value="2">2 - บริษัท B</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="summary-document">เอกสารที่ต้องการสรุป (documentID)</label>
+                            <select id="summary-document">
+                                <option value="1">1 - สัญญาเงินกู้</option>
+                                <option value="2">2 - รายงานการเงิน Q1/2024</option>
+                                <option value="3">3 - ใบแจ้งหนี้ เดือนเมษายน</option>
+                                <option value="4">4 - สัญญาจ้างงาน</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit">ขอสรุป</button>
+                    </form>
+                    
+                    <div class="response-area" id="llm-summary-response">
+                        <!-- API Response will appear here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side">
+                <h2>ฝั่ง B (ผู้ใช้บริการ)</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="signature">ลงนามเอกสาร</div>
+                    <div class="tab" data-tab="edit">ขอให้แก้ไขเอกสาร</div>
+                </div>
+                
+                <!-- Signature Tab -->
+                <div class="tab-content active" id="signature">
+                    <h3>ลงนามเอกสาร (SIGNATURE)</h3>
+                    <div class="api-endpoint">POST http://localhost:8080/api/sign</div>
+                    
+                    <form id="signature-form">
+                        <div class="form-group">
+                            <label for="sign-requester">ผู้ขอลงนาม (requesterID)</label>
+                            <select id="sign-requester">
+                                <option value="1">1 - สมชาย มั่งมี</option>
+                                <option value="2">2 - สมหญิง รักดี</option>
+                                <option value="3">3 - วิชัย ใจดี</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sign-provider">ผู้ให้บริการ (providerID)</label>
+                            <select id="sign-provider">
+                                <option value="1">1 - ธนาคาร A</option>
+                                <option value="2">2 - บริษัท B</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sign-document">เอกสารที่ต้องการลงนาม (documentID)</label>
+                            <select id="sign-document">
+                                <option value="1">1 - สัญญาเงินกู้</option>
+                                <option value="2">2 - รายงานการเงิน Q1/2024</option>
+                                <option value="3">3 - ใบแจ้งหนี้ เดือนเมษายน</option>
+                                <option value="4">4 - สัญญาจ้างงาน</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sign-comment">ความคิดเห็น (comment)</label>
+                            <textarea id="sign-comment" rows="3" placeholder="ใส่ความคิดเห็นเกี่ยวกับการลงนาม">ลงนามแล้วเรียบร้อย</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sign-status">สถานะ (status)</label>
+                            <select id="sign-status">
+                                <option value="SIGN">SIGN - ลงนาม</option>
+                                <option value="REJECT">REJECT - ปฏิเสธ</option>
+                                <option value="PENDING">PENDING - รอดำเนินการ</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit">ส่งคำขอ</button>
+                    </form>
+                    
+                    <div class="response-area" id="signature-response">
+                        <!-- API Response will appear here -->
+                    </div>
+                </div>
+                
+                <!-- Edit Tab -->
+                <div class="tab-content" id="edit">
+                    <h3>ขอให้แก้ไขเอกสาร (EDIT)</h3>
+                    <div class="api-endpoint">POST http://localhost:8080/api/edit</div>
+                    
+                    <form id="edit-form">
+                        <div class="form-group">
+                            <label for="edit-requester">ผู้ขอแก้ไข (requesterID)</label>
+                            <select id="edit-requester">
+                                <option value="1">1 - สมชาย มั่งมี</option>
+                                <option value="2">2 - สมหญิง รักดี</option>
+                                <option value="3">3 - วิชัย ใจดี</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-editor">ผู้แก้ไข (editorID)</label>
+                            <select id="edit-editor">
+                                <option value="1">1 - พนักงาน A</option>
+                                <option value="2">2 - พนักงาน B</option>
+                                <option value="3">3 - พนักงาน C</option>
+                                <option value="4">4 - พนักงาน D</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-document">เอกสารที่ต้องการแก้ไข (documentID)</label>
+                            <select id="edit-document">
+                                <option value="1">1 - สัญญาเงินกู้</option>
+                                <option value="2">2 - รายงานการเงิน Q1/2024</option>
+                                <option value="3">3 - ใบแจ้งหนี้ เดือนเมษายน</option>
+                                <option value="4">4 - สัญญาจ้างงาน</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-command">คำสั่งแก้ไข (editCommand)</label>
+                            <textarea id="edit-command" rows="3" placeholder="ระบุรายละเอียดการแก้ไข">เปลี่ยนชื่อผู้รับเป็น Tantawan</textarea>
+                        </div>
+                        
+                        <button type="submit">ส่งคำขอ</button>
+                    </form>
+                    
+                    <div class="response-area" id="edit-response">
+                        <!-- API Response will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock API data
+        const mockData = {
+            users: [
+                { id: 1, name: "สมชาย มั่งมี", role: "ลูกค้า" },
+                { id: 2, name: "สมหญิง รักดี", role: "ลูกค้า" },
+                { id: 3, name: "วิชัย ใจดี", role: "ลูกค้า" }
+            ],
+            providers: [
+                { id: 1, name: "ธนาคาร A" },
+                { id: 2, name: "บริษัท B" }
+            ],
+            documents: [
+                { 
+                    id: 1, 
+                    title: "สัญญาเงินกู้", 
+                    owner: 1, 
+                    provider: 1, 
+                    status: "PENDING",
+                    content: "สัญญาเงินกู้ระหว่าง สมชาย มั่งมี และ ธนาคาร A จำนวนเงิน 1,000,000 บาท ระยะเวลา 10 ปี..."
+                },
+                { 
+                    id: 2, 
+                    title: "รายงานการเงิน Q1/2024", 
+                    owner: 2, 
+                    provider: 2, 
+                    status: "PENDING",
+                    content: "รายงานการเงินประจำไตรมาสที่ 1 ปี 2024 บริษัท B\nรายได้รวม: 25,000,000 บาท\nกำไรสุทธิ: 5,200,000 บาท\nหนี้สินรวม: 12,300,000 บาท\nส่วนของผู้ถือหุ้น: 45,600,000 บาท"
+                },
+                { 
+                    id: 3, 
+                    title: "ใบแจ้งหนี้ เดือนเมษายน", 
+                    owner: 1, 
+                    provider: 2, 
+                    status: "APPROVED",
+                    content: "ใบแจ้งหนี้เลขที่: INV-2024-04-123\nวันที่: 30 เมษายน 2024\nถึง: คุณสมชาย มั่งมี\nรายการ: ค่าบริการระบบจัดการเอกสาร\nจำนวนเงิน: 15,000 บาท\nวันครบกำหนดชำระ: 15 พฤษภาคม 2024"
+                },
+                { 
+                    id: 4, 
+                    title: "สัญญาจ้างงาน", 
+                    owner: 3, 
+                    provider: 1, 
+                    status: "PENDING",
+                    content: "สัญญาจ้างงานระหว่าง คุณวิชัย ใจดี และ ธนาคาร A\nตำแหน่ง: นักวิเคราะห์ระบบ\nเงินเดือน: 60,000 บาท\nวันเริ่มงาน: 1 มิถุนายน 2024\nระยะเวลาทดลองงาน: 120 วัน"
+                }
+            ],
+            editors: [
+                { id: 1, name: "พนักงาน A" },
+                { id: 2, name: "พนักงาน B" },
+                { id: 3, name: "พนักงาน C" },
+                { id: 4, name: "พนักงาน D" }
+            ]
+        };
+
+        // Tab Switching Logic
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const sideEl = this.closest('.side');
+                const tabName = this.getAttribute('data-tab');
+                
+                // Update active tab
+                sideEl.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding content
+                sideEl.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                sideEl.querySelector(`#${tabName}`).classList.add('active');
+            });
+        });
+
+        // Form Submission Handlers
+        document.getElementById('access-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requesterId = document.getElementById('access-requester').value;
+            const providerId = document.getElementById('access-provider').value;
+            const documentId = document.getElementById('access-document').value;
+            
+            const requestData = {
+                requesterId: parseInt(requesterId),
+                providerId: parseInt(providerId),
+                documentId: parseInt(documentId)
+            };
+            
+            // Mock API response
+            const response = {
+                success: true,
+                message: "การขอเข้าถึงเอกสารสำเร็จ",
+                data: {
+                    document: mockData.documents.find(doc => doc.id === parseInt(documentId)),
+                    accessGranted: true,
+                    timestamp: new Date().toISOString()
+                }
+            };
+            
+            displayResponse('access-response', requestData, response);
+        });
+        
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requesterId = document.getElementById('search-requester').value;
+            const providerId = document.getElementById('search-provider').value;
+            const keyword = document.getElementById('search-keyword').value;
+            
+            const requestData = {
+                requesterId: parseInt(requesterId),
+                providerId: parseInt(providerId),
+                keyword: keyword
+            };
+            
+            // Mock API response - search documents by keyword
+            const matchingDocs = mockData.documents.filter(doc => 
+                doc.title.includes(keyword) || 
+                doc.content.includes(keyword)
+            );
+            
+            const response = {
+                success: true,
+                message: `พบ ${matchingDocs.length} เอกสารที่ตรงกับคำค้น "${keyword}"`,
+                data: {
+                    results: matchingDocs.map(doc => ({
+                        id: doc.id,
+                        title: doc.title,
+                        snippet: doc.content.substring(0, 100) + "...",
+                        provider: mockData.providers.find(p => p.id === doc.provider).name
+                    })),
+                    timestamp: new Date().toISOString()
+                }
+            };
+            
+            displayResponse('search-response', requestData, response);
+        });
+        
+        document.getElementById('llm-summary-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requesterId = document.getElementById('summary-requester').value;
+            const providerId = document.getElementById('summary-provider').value;
+            const documentId = document.getElementById('summary-document').value;
+            
+            const requestData = {
+                requesterId: parseInt(requesterId),
+                providerId: parseInt(providerId),
+                documentId: parseInt(documentId)
+            };
+            
+            // Get document content
+            const document = mockData.documents.find(doc => doc.id === parseInt(documentId));
+            
+            // Mock LLM summary
+            let summary = "";
+            if (document.title.includes("สัญญา")) {
+                summary = "เอกสารนี้เป็นสัญญาทางกฎหมายระหว่างสองฝ่าย โดยมีเงื่อนไขหลักเกี่ยวกับข้อตกลงทางการเงินและระยะเวลา ผู้ลงนามประกอบด้วยทั้งสองฝ่ายและมีการระบุข้อกำหนดในการผิดสัญญา";
+            } else if (document.title.includes("รายงาน")) {
+                summary = "เอกสารนี้เป็นรายงานการเงินที่แสดงผลประกอบการ โดยมีการแสดงรายได้ กำไร หนี้สิน และส่วนของผู้ถือหุ้น ผลประกอบการโดยรวมเป็นบวกเมื่อเทียบกับไตรมาสก่อนหน้า";
+            } else if (document.title.includes("ใบแจ้งหนี้")) {
+                summary = "เอกสารนี้เป็นใบแจ้งหนี้สำหรับการบริการ โดยระบุจำนวนเงินที่ต้องชำระและวันครบกำหนด ผู้รับคือลูกค้าตามที่ระบุในเอกสาร";
+            }
+            
+            const response = {
+                success: true,
+                message: "การสรุปเอกสารสำเร็จ",
+                data: {
+                    document: {
+                        id: document.id,
+                        title: document.title
+                    },
+                    summary: summary,
+                    confidence: 0.92,
+                    processingTime: "1.2 วินาที",
+                    timestamp: new Date().toISOString()
+                }
+            };
+            
+            displayResponse('llm-summary-response', requestData, response);
+        });
+        
+        document.getElementById('signature-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requesterId = document.getElementById('sign-requester').value;
+            const providerId = document.getElementById('sign-provider').value;
+            const documentId = document.getElementById('sign-document').value;
+            const comment = document.getElementById('sign-comment').value;
+            const status = document.getElementById('sign-status').value;
+            
+            const requestData = {
+                requesterId: parseInt(requesterId),
+                providerId: parseInt(providerId),
+                documentId: parseInt(documentId),
+                comment: comment,
+                status: status
+            };
+            
+            // Mock API response
+            const document = mockData.documents.find(doc => doc.id === parseInt(documentId));
+            document.status = status === "SIGN" ? "APPROVED" : (status === "REJECT" ? "REJECTED" : "PENDING");
+            
+            const response = {
+                success: true,
+                message: status === "SIGN" ? "ลงนามเอกสารสำเร็จ" : (status === "REJECT" ? "ปฏิเสธการลงนามเอกสารสำเร็จ" : "บันทึกสถานะรอดำเนินการสำเร็จ"),
+                data: {
+                    document: {
+                        id: document.id,
+                        title: document.title,
+                        status: document.status
+                    },
+                    signatureDetails: {
+                        signedBy: mockData.users.find(u => u.id === parseInt(requesterId)).name,
+                        timestamp: new Date().toISOString(),
+                        comment: comment
+                    }
+                }
+            };
+            
+            displayResponse('signature-response', requestData, response);
+        });
+        
+        document.getElementById('edit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requesterId = document.getElementById('edit-requester').value;
+            const editorId = document.getElementById('edit-editor').value;
+            const documentId = document.getElementById('edit-document').value;
+            const editCommand = document.getElementById('edit-command').value;
+            
+            const requestData = {
+                requesterId: parseInt(requesterId),
+                editorId: parseInt(editorId),
+                documentId: parseInt(documentId),
+                editCommand: editCommand
+            };
+            
+            // Mock API response
+            const document = mockData.documents.find(doc => doc.id === parseInt(documentId));
+            
+            const response = {
+                success: true,
+                message: "บันทึกคำขอแก้ไขเอกสารสำเร็จ",
+                data: {
+                    document: {
+                        id: document.id,
+                        title: document.title
+                    },
+                    editRequest: {
+                        id: Math.floor(Math.random() * 1000) + 1,
+                        requestedBy: mockData.users.find(u => u.id === parseInt(requesterId)).name,
+                        assignedTo: mockData.editors.find(e => e.id === parseInt(editorId)).name,
+                        command: editCommand,
+                        status: "PENDING",
+                        timestamp: new Date().toISOString()
+                    }
+                }
+            };
+            
+            displayResponse('edit-response', requestData, response);
+        });
+        
+        // Helper function to display request/response
+        function displayResponse(elementId, requestData, response) {
+            const responseElement = document.getElementById(elementId);
+            
+            let html = `<h4>คำขอ (Request):</h4>
+                       <pre><code>${JSON.stringify(requestData, null, 2)}</code></pre>
+                       <h4>การตอบกลับ (Response):</h4>
+                       <pre><code>${JSON.stringify(response, null, 2)}</code></pre>`;
+            
+            if (response.success) {
+                responseElement.classList.add('response-success');
+                responseElement.classList.remove('response-error');
+            } else {
+                responseElement.classList.add('response-error');
+                responseElement.classList.remove('response-success');
+            }
+            
+            responseElement.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

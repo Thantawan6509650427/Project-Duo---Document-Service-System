@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการเอกสาร - ฝั่ง B</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #a5d6a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .tab-nav {
+            background-color: #e8f5e9;
+            border-bottom: 1px solid #c8e6c9;
+        }
+        .tabs {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .tabs li {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tabs li.active {
+            background-color: white;
+            border-bottom: 3px solid #2e7d32;
+        }
+        .tabs li:hover:not(.active) {
+            background-color: #c8e6c9;
+        }
+        .content-area {
+            background-color: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .document-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .document-list th, .document-list td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .document-list th {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .document-list tr:hover {
+            background-color: #f5f5f5;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .status-signed {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        .status-draft {
+            background-color: #ffecb3;
+            color: #ff8f00;
+        }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background-color: #2e7d32;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .form-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        textarea.form-control {
+            min-height: 100px;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 60%;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close {
+            float: right;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+        .close:hover {
+            color: #2e7d32;
+        }
+        .json-preview {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px 0 0 4px;
+            font-size: 1em;
+        }
+        .search-box button {
+            padding: 10px 20px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .search-results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>ระบบจัดการเอกสาร</h1>
+            <div class="user-info">
+                <div class="user-avatar">B</div>
+                <span>ผู้ใช้ระบบ B</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="tab-nav">
+        <ul class="tabs">
+            <li class="active">เข้าถึงเอกสาร</li>
+            <li>ค้นหาเอกสาร</li>
+            <li>ประวัติการเข้าถึง</li>
+        </ul>
+    </div>
+    
+    <div class="container">
+        <div class="content-area">
+            <h2>การจัดการเอกสาร</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <button id="btnAccess" class="btn btn-primary">ขอเข้าถึงเอกสาร</button>
+                <button id="btnSearch" class="btn btn-primary">ค้นหาเอกสาร</button>
+            </div>
+            
+            <!-- Search Box -->
+            <div class="search-box">
+                <input type="text" placeholder="ค้นหาเอกสาร..." id="searchInput">
+                <button onclick="quickSearch()">ค้นหา</button>
+            </div>
+            
+            <table class="document-list">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ชื่อเอกสาร</th>
+                        <th>วันที่</th>
+                        <th>สถานะ</th>
+                        <th>เจ้าของ</th>
+                        <th>การดำเนินการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Document 1</td>
+                        <td>2025-05-01 21:02:11</td>
+                        <td><span class="status status-signed">ลงนามแล้ว</span></td>
+                        <td>1</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-secondary" onclick="viewDocument(1)">ดู</button>
+                                <button class="btn btn-secondary" onclick="selectDocument(1)">เลือก</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Document 2</td>
+                        <td>2025-05-02 01:19:17.875688</td>
+                        <td><span class="status status-signed">ลงนามแล้ว</span></td>
+                        <td>1</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-secondary" onclick="viewDocument(2)">ดู</button>
+                                <button class="btn btn-secondary" onclick="selectDocument(2)">เลือก</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>รายงานผลการดำเนินงานโครงการฝึกอบรม</td>
+                        <td>null</td>
+                        <td><span class="status status-draft">ร่าง</span></td>
+                        <td>2</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-secondary" onclick="viewDocument(3)">ดู</button>
+                                <button class="btn btn-secondary" onclick="selectDocument(3)">เลือก</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>หนังสือขออนุมัติโครงการจัดซื้อครุภัณฑ์ 1</td>
+                        <td>null</td>
+                        <td><span class="status status-draft">ร่าง</span></td>
+                        <td>null</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-secondary" onclick="viewDocument(4)">ดู</button>
+                                <button class="btn btn-secondary" onclick="selectDocument(4)">เลือก</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Search Results Section (Initially Hidden) -->
+            <div class="search-results" id="searchResults" style="display: none;">
+                <h3>ผลการค้นหา</h3>
+                <div id="resultsContainer">
+                    <!-- Search results will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal for Document Access -->
+        <div id="accessModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('accessModal')">&times;</span>
+                <h2>ขอเข้าถึงเอกสาร</h2>
+                <div class="form-panel">
+                    <div class="form-group">
+                        <label for="accessRequesterId">รหัสผู้ขอ</label>
+                        <input type="number" id="accessRequesterId" class="form-control" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="accessProviderId">รหัสผู้ให้บริการ</label>
+                        <input type="number" id="accessProviderId" class="form-control" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="accessDocumentId">รหัสเอกสาร</label>
+                        <input type="number" id="accessDocumentId" class="form-control" value="4">
+                    </div>
+                    
+                    <div class="json-preview">
+                        <code id="accessJsonPreview">
+{
+  "requesterId": 1,
+  "providerId": 1,
+  "documentId": 4
+}
+                        </code>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal('accessModal')">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitAccess()">ส่งคำขอ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal for Document Search -->
+        <div id="searchModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('searchModal')">&times;</span>
+                <h2>ค้นหาเอกสาร</h2>
+                <div class="form-panel">
+                    <div class="form-group">
+                        <label for="searchRequesterId">รหัสผู้ขอ</label>
+                        <input type="number" id="searchRequesterId" class="form-control" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="searchProviderId">รหัสผู้ให้บริการ</label>
+                        <input type="number" id="searchProviderId" class="form-control" value="2">
+                    </div>
+                    <div class="form-group">
+                        <label for="searchKeyword">คำค้นหา</label>
+                        <input type="text" id="searchKeyword" class="form-control" value="Q1">
+                    </div>
+                    
+                    <div class="json-preview">
+                        <code id="searchJsonPreview">
+{
+  "requesterId": 1,
+  "providerId": 2,
+  "keyword": "Q1"
+}
+                        </code>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="closeModal('searchModal')">ยกเลิก</button>
+                        <button class="btn btn-primary" onclick="submitSearch()">ส่งคำขอ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global selected document
+        let selectedDocumentId = null;
+        
+        // Handle document selection
+        function selectDocument(docId) {
+            selectedDocumentId = docId;
+            const rows = document.querySelectorAll('.document-list tbody tr');
+            rows.forEach(row => {
+                if (row.cells[0].textContent == docId) {
+                    row.style.backgroundColor = '#e8f5e9';
+                } else {
+                    row.style.backgroundColor = '';
+                }
+            });
+            
+            // Update all modals with the selected document ID
+            document.getElementById('accessDocumentId').value = docId;
+            
+            // Update JSON previews
+            updateJsonPreviews();
+        }
+        
+        // View document
+        function viewDocument(docId) {
+            alert(`ดูเอกสารหมายเลข ${docId}`);
+            // Implement view functionality as needed
+        }
+        
+        // Quick search function (for the search box)
+        function quickSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (!searchTerm) {
+                alert('กรุณาระบุคำค้นหา');
+                return;
+            }
+            
+            // Show search results section
+            document.getElementById('searchResults').style.display = 'block';
+            
+            // Clear previous results
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+            
+            // Mock search through the document list
+            const rows = document.querySelectorAll('.document-list tbody tr');
+            let resultsFound = false;
+            
+            rows.forEach(row => {
+                const title = row.cells[1].textContent.toLowerCase();
+                const id = row.cells[0].textContent;
+                const status = row.cells[3].querySelector('.status').textContent;
+                
+                if (title.includes(searchTerm) || id.includes(searchTerm)) {
+                    resultsFound = true;
+                    
+                    // Create a result card
+                    const resultCard = document.createElement('div');
+                    resultCard.className = 'card';
+                    resultCard.innerHTML = `
+                        <div class="card-header">
+                            <strong>${row.cells[1].textContent}</strong>
+                            <span>${status}</span>
+                        </div>
+                        <div>ID: ${id}</div>
+                        <div>วันที่: ${row.cells[2].textContent}</div>
+                        <div>เจ้าของ: ${row.cells[4].textContent}</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-secondary" onclick="viewDocument(${id})">ดู</button>
+                            <button class="btn btn-secondary" onclick="selectDocument(${id})">เลือก</button>
+                        </div>
+                    `;
+                    
+                    resultsContainer.appendChild(resultCard);
+                }
+            });
+            
+            if (!resultsFound) {
+                resultsContainer.innerHTML = '<p>ไม่พบผลการค้นหา</p>';
+            }
+        }
+        
+        // Show modals
+        document.getElementById('btnAccess').addEventListener('click', function() {
+            document.getElementById('accessModal').style.display = 'block';
+        });
+        
+        document.getElementById('btnSearch').addEventListener('click', function() {
+            document.getElementById('searchModal').style.display = 'block';
+        });
+        
+        // Close modals
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Update JSON previews when form inputs change
+        function updateJsonPreviews() {
+            // Access modal
+            const accessJson = {
+                requesterId: parseInt(document.getElementById('accessRequesterId').value),
+                providerId: parseInt(document.getElementById('accessProviderId').value),
+                documentId: parseInt(document.getElementById('accessDocumentId').value)
+            };
+            document.getElementById('accessJsonPreview').textContent = JSON.stringify(accessJson, null, 2);
+            
+            // Search modal
+            const searchJson = {
+                requesterId: parseInt(document.getElementById('searchRequesterId').value),
+                providerId: parseInt(document.getElementById('searchProviderId').value),
+                keyword: document.getElementById('searchKeyword').value
+            };
+            document.getElementById('searchJsonPreview').textContent = JSON.stringify(searchJson, null, 2);
+        }
+        
+        // Add event listeners to all input fields
+        const allInputs = document.querySelectorAll('input, textarea');
+        allInputs.forEach(input => {
+            input.addEventListener('input', updateJsonPreviews);
+        });
+        
+        // Submit functions
+        function submitAccess() {
+            const accessJson = {
+                requesterId: parseInt(document.getElementById('accessRequesterId').value),
+                providerId: parseInt(document.getElementById('accessProviderId').value),
+                documentId: parseInt(document.getElementById('accessDocumentId').value)
+            };
+            
+            fetch('http://localhost:9090/api/access', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(accessJson)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('ส่งคำขอเข้าถึงเอกสารสำเร็จ');
+                    closeModal('accessModal');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการส่งคำขอเข้าถึงเอกสาร');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            });
+        }
+        
+        function submitSearch() {
+            const searchJson = {
+                requesterId: parseInt(document.getElementById('searchRequesterId').value),
+                providerId: parseInt(document.getElementById('searchProviderId').value),
+                keyword: document.getElementById('searchKeyword').value
+            };
+            
+            fetch('http://localhost:9090/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(searchJson)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('ส่งคำขอค้นหาเอกสารสำเร็จ');
+                    closeModal('searchModal');
+                    
+                    // For demo purposes, trigger the search in the UI as well
+                    document.getElementById('searchInput').value = searchJson.keyword;
+                    quickSearch();
+                } else {
+                    alert('เกิดข้อผิดพลาดในการส่งคำขอค้นหาเอกสาร');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            });
+        }
+        
+        // Tab switching
+        const tabs = document.querySelectorAll('.tabs li');
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Switch content sections as needed
+                // This is a stub - implement full tab switching if needed
+            });
+        });
+    </script>
+</body>
+</html>
