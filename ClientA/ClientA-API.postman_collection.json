@@ -1,0 +1,160 @@
+{
+	"info": {
+		"_postman_id": "clienta-actual-endpoints",
+		"name": "ClientA - Actual Endpoints (ตรงกับ Controller จริง)",
+		"description": "API Collection ที่ตรงกับ path ใน Controller ของคุณ",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Sign Request",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"documentId\": 1,\n  \"requesterId\": 2,\n  \"reason\": \"ขออนุมัติลงนามเอกสารสัญญา\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/request/sign",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"request",
+						"sign"
+					]
+				},
+				"description": "ส่งคำขอลงนามเอกสาร (ตรงกับ @RequestMapping(\"/request/sign\"))"
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Request",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"documentId\": 1,\n  \"requesterId\": 2,\n  \"newContent\": \"เนื้อหาที่ต้องการแก้ไข\",\n  \"reason\": \"แก้ไขข้อมูลเงินเดือนตามที่ตกลง\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/request/edit",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"request",
+						"edit"
+					]
+				},
+				"description": "ส่งคำขอแก้ไขเอกสาร (ตรงกับ @RequestMapping(\"/request/edit\"))"
+			},
+			"response": []
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/actuator/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"actuator",
+						"health"
+					]
+				},
+				"description": "ตรวจสอบสถานะ server"
+			},
+			"response": []
+		},
+		{
+			"name": "Check Static Pages",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						""
+					]
+				},
+				"description": "เช็คว่ามี static pages หรือไม่"
+			},
+			"response": []
+		},
+		{
+			"name": "Access HTML Page",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/access.html",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"access.html"
+					]
+				},
+				"description": "เข้าถึง access.html (ถ้ามี)"
+			},
+			"response": []
+		},
+		{
+			"name": "Search HTML Page",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/search.html",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"search.html"
+					]
+				},
+				"description": "เข้าถึง search.html (ถ้ามี)"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
