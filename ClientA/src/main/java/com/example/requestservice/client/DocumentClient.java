@@ -6,23 +6,38 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 @Component
 public class DocumentClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // ✅ ส่งคำขอไปที่ ClientB (port 8081)
     public String sendEditRequest(EditRequestDTO dto) {
-        return sendPostRequest("http://localhost:9090/document/edit", dto);
+        String url = "http://localhost:8081/documents/" + dto.getDocumentId() + "/edit";
+        String json = String.format(
+            "{\"requesterId\": 2, \"editorId\": 1, \"editCommand\": \"%s\"}",
+            dto.getReason()
+        );
+        return sendPostRequest(url, json);
     }
 
     public String sendSignatureRequest(SignRequestDTO dto) {
-        return sendPostRequest("http://localhost:9090/document/sign", dto);
+        String url = "http://localhost:8081/documents/" + dto.getDocumentId() + "/sign";
+        String json = String.format(
+            "{\"requesterId\": 2, \"providerId\": 1, \"comment\": \"%s\", \"status\": \"SIGNED\"}",
+            dto.getRequester()
+        );
+        return sendPostRequest(url, json);
     }
 
-    private String sendPostRequest(String endpoint, Object data) {
+    private String sendPostRequest(String endpoint, String data) {
         try {
             URL url = new URL(endpoint);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -30,14 +45,19 @@ public class DocumentClient {
             con.setRequestProperty("Content-Type", "application/json");
             con.setDoOutput(true);
 
-            String jsonInput = objectMapper.writeValueAsString(data);
             try (OutputStream os = con.getOutputStream()) {
-                os.write(jsonInput.getBytes());
+                os.write(data.getBytes(StandardCharsets.UTF_8));
                 os.flush();
             }
 
             int status = con.getResponseCode();
-            return "Response code: " + status;
+            if (status >= 200 && status < 300) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+                    return in.lines().collect(Collectors.joining());
+                }
+            } else {
+                return "Error: HTTP " + status;
+            }
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }

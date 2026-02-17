@@ -13,9 +13,15 @@ import java.util.Optional;
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
+    private final SignatureService signatureService;
+    private final EditService editService;
 
-    public DocumentService(DocumentRepository documentRepository) {
+    public DocumentService(DocumentRepository documentRepository, 
+                          SignatureService signatureService,
+                          EditService editService) {
         this.documentRepository = documentRepository;
+        this.signatureService = signatureService;
+        this.editService = editService;
     }
 
     public List<Document> getAllDocuments() {
@@ -38,13 +44,23 @@ public class DocumentService {
         documentRepository.deleteById(id);
     }
 
+    // ✅ Implement signDocument
     public boolean signDocument(Long id, SignCommandDTO signCommand) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'signDocument'");
+        try {
+            signatureService.signDocument(id, signCommand.getComment(), signCommand.getStatus());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
+    // ✅ Implement editDocument
     public boolean editDocument(Long id, EditCommandDTO editCommand) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'editDocument'");
+        try {
+            editService.requestEdit(id, editCommand.getEditCommand());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
