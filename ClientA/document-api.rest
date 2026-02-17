@@ -1,25 +1,34 @@
+### ClientA - Document Request Service API
+
+### 1. Health Check
+GET http://localhost:8080/actuator/health
+
 ### 2. ลงนามเอกสาร (SIGNATURE)
-POST http://localhost:8080/api/sign
+POST http://localhost:8080/request/sign
 Content-Type: application/json
 
 {
+  "documentId": 1,
   "requesterId": 2,
-  "providerId": 1,
-  "documentId": 2,        
-  "comment": "ลงนามแล้วเรียบร้อย",
-  "status": "SIGN"
+  "reason": "ขออนุมัติลงนามเอกสารสัญญา"
 }
 
-
-### 4. ขอให้แก้ไขเอกสาร (EDIT) 
-POST http://localhost:8080/api/edit
+### 3. ขอให้แก้ไขเอกสาร (EDIT)
+POST http://localhost:8080/request/edit
 Content-Type: application/json
 
 {
+  "documentId": 1,
   "requesterId": 2,
-  "editorId":    4,
-  "documentId":  2,
-  "editCommand": "เปลี่ยนชื่อผู้รับเป็น Tantawan"
+  "newContent": "เนื้อหาที่ต้องการแก้ไข",
+  "reason": "แก้ไขข้อมูลตามที่ตกลง"
 }
 
+### 4. เข้า H2 Console
+GET http://localhost:8080/h2-console
 
+### 5. ดูหน้า HTML
+GET http://localhost:8080/access.html
+
+### 6. ตรวจสอบ Mappings
+GET http://localhost:8080/actuator/mappings
