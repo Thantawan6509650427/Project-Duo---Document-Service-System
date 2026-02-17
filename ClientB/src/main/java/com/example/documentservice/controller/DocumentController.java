@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 import java.util.List;
 
-@RestController
-@RequestMapping("/documents")
+@RestController  // ← ต้องมี annotation นี้
+@RequestMapping("/documents")  // ← ต้องมี path นี้
 public class DocumentController {
 
     private final DocumentService documentService;
@@ -20,21 +20,21 @@ public class DocumentController {
         this.documentService = documentService;
     }
 
-    // ✅ ค้นหาเอกสารทั้งหมด
-    @GetMapping
+    // ✅ ดูเอกสารทั้งหมด
+    @GetMapping  // ← GET /documents
     public ResponseEntity<List<Document>> getAllDocuments() {
         List<Document> documents = documentService.getAllDocuments();
         return ResponseEntity.ok(documents);
     }
 
-    // ✅ ค้นหาเอกสารตาม ID
-    @GetMapping("/{id}")
+    // ✅ ดูเอกสารตาม ID
+    @GetMapping("/{id}")  // ← GET /documents/{id}
     public ResponseEntity<Document> getDocumentById(@PathVariable Long id) {
         Optional<Document> doc = documentService.getDocumentById(id);
         return doc.map(ResponseEntity::ok)
                   .orElse(ResponseEntity.notFound().build());
     }
-    //ฝั่งA
+
     // ✅ ลงนามเอกสาร
     @PostMapping("/{id}/sign")
     public ResponseEntity<String> signDocument(@PathVariable Long id, @RequestBody SignCommandDTO signCommand) {
@@ -43,7 +43,7 @@ public class DocumentController {
                        : ResponseEntity.badRequest().body("Cannot sign document.");
     }
 
-    // ✅ ขอแก้ไขเอกสาร
+    // ✅ แก้ไขเอกสาร
     @PostMapping("/{id}/edit")
     public ResponseEntity<String> editDocument(@PathVariable Long id, @RequestBody EditCommandDTO editCommand) {
         boolean success = documentService.editDocument(id, editCommand);

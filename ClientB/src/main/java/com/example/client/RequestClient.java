@@ -10,21 +10,22 @@ import java.util.stream.Collectors;
 
 public class RequestClient {
 
-    private static final String EDIT_URL = "http://localhost:8080/api/edit-request";
-    private static final String SIGNATURE_URL = "http://localhost:8080/api/signature-request";
+    // ✅ แก้ URL ให้ตรงกับ endpoint ของฝั่ง A
+    private static final String EDIT_URL = "http://localhost:8080/documents/{id}/edit";
+    private static final String SIGNATURE_URL = "http://localhost:8080/documents/{id}/sign";
 
-    public String sendEditRequest(Long documentId, String comment) {
+    public String sendEditRequest(Long documentId, String editCommand) {
         String json = String.format(
-                "{\"requesterId\": 2, \"providerId\": 1, \"documentId\": %d, \"comment\": \"%s\", \"status\": \"EDIT\"}",
-                documentId, comment);
-        return sendPost(EDIT_URL, json);
+                "{\"requesterId\": 2, \"editorId\": 1, \"editCommand\": \"%s\"}",
+                editCommand);
+        return sendPost(EDIT_URL.replace("{id}", documentId.toString()), json);
     }
 
     public String sendSignatureRequest(Long documentId, String comment) {
         String json = String.format(
-                "{\"requesterId\": 2, \"providerId\": 1, \"documentId\": %d, \"comment\": \"%s\", \"status\": \"SIGN\"}",
-                documentId, comment);
-        return sendPost(SIGNATURE_URL, json);
+                "{\"requesterId\": 2, \"providerId\": 1, \"comment\": \"%s\", \"status\": \"SIGNED\"}",
+                comment);
+        return sendPost(SIGNATURE_URL.replace("{id}", documentId.toString()), json);
     }
 
     private String sendPost(String targetUrl, String jsonBody) {
@@ -39,8 +40,13 @@ public class RequestClient {
                 os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
             }
 
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                return in.lines().collect(Collectors.joining());
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    return in.lines().collect(Collectors.joining());
+                }
+            } else {
+                return "Error: HTTP " + responseCode;
             }
         } catch (Exception e) {
             return "Error sending request: " + e.getMessage();

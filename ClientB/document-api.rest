@@ -1,25 +1,24 @@
-### 2. ลงนามเอกสาร (SIGNATURE)
-POST http://localhost:8080/api/sign
+### ลงนามเอกสาร
+POST http://localhost:8081/documents/2/sign
 Content-Type: application/json
 
 {
   "requesterId": 2,
   "providerId": 1,
-  "documentId": 2,        
   "comment": "ลงนามแล้วเรียบร้อย",
-  "status": "SIGN"
+  "status": "SIGNED"
 }
 
+###
 
-### 4. ขอให้แก้ไขเอกสาร (EDIT) 
-POST http://localhost:8080/api/edit
+### แก้ไขเอกสาร
+POST http://localhost:8081/documents/2/edit
 Content-Type: application/json
 
 {
   "requesterId": 2,
-  "editorId":    4,
-  "documentId":  2,
+  "editorId": 4,
   "editCommand": "เปลี่ยนชื่อผู้รับเป็น Tantawan"
 }
 
-
+###
